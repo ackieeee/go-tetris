@@ -37,6 +37,29 @@ func NewField() *Field {
 	return &field
 }
 
+func (f *Field) CanMoveMino(m Mino, x, y int) bool {
+	featureMino := m.Copy()
+	featureMino.AddX(x)
+	featureMino.AddY(y)
+	//featureMino.Shape = shape
+	minoType := featureMino.GetType()
+
+	for i, line := range featureMino.GetTypes(minoType) {
+		for j, block := range line {
+			if block == 0 {
+				continue
+			}
+			x := featureMino.GetX() + j
+			y := featureMino.GetY() + i
+			if f.Tile[y][x] != 9 {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 func (f *Field) DeleteLine() {
 	lineNums := []int{}
 	// すべて1のものの行番号を配列で保持

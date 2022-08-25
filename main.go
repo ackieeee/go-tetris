@@ -5,27 +5,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"go-tetris/tetris"
-	"image/color"
 	_ "image/png"
 	"log"
 )
 
 var (
-	keys     []string
-	runImage *ebiten.Image
-	colors   = []color.RGBA{
-		{0xff, 0xff, 0xff, 0xff},
-		{0xff, 0xff, 0x0, 0xff},
-		{0xff, 0x0, 0xff, 0xff},
-		{0xff, 0x0, 0x0, 0xff},
-		{0x0, 0xff, 0xff, 0xff},
-		{0x0, 0xff, 0x0, 0xff},
-		{0x0, 0x0, 0xff, 0xff},
-		{0x0, 0x0, 0x0, 0xff},
-		{0xcc, 0xcc, 0xcc, 0xcc},
-		{0x0, 0x0, 0x0, 0x0},
-	}
-	gray       = color.RGBA{0xcc, 0xcc, 0xcc, 0xcc}
 	frameCount = 0
 )
 
@@ -35,7 +19,7 @@ const (
 
 type Game struct {
 	field *tetris.Field
-	mino  *tetris.Mino
+	mino  tetris.Mino
 }
 
 func (g *Game) drawField(screen *ebiten.Image) {
@@ -50,68 +34,57 @@ func (g *Game) drawField(screen *ebiten.Image) {
 	}
 }
 
-func (g *Game) CanMoveMino(x, y, shape int) bool {
-	featureMino := g.mino.Copy()
-	featureMino.X += x
-	featureMino.Y += y
-	featureMino.Shape = shape
-
-	// 衝突検知
-	for _, t := range featureMino.Type {
-		x, y := featureMino.Calc(t[0], t[1])
-		if g.field.Tile[y][x] != 9 {
-			return false
-		}
-	}
-	return true
+func (g *Game) CanMoveMino(x, y int) bool {
+	return g.field.CanMoveMino(g.mino, x, y)
 }
 
 func (g *Game) DownMino() {
-	if g.CanMoveMino(0, 1, g.mino.Shape) {
+	if g.CanMoveMino(0, 1) {
 		g.mino.Move(0, 1)
 	} else {
 		// 動けないので現在位置でミノを固定
-		for _, t := range g.mino.Type {
-			// 回転を含む現在のブロックの座標を取得
-			x, y := g.mino.Calc(t[0], t[1])
-			// 各ブロックの色に空白を部分を更新(ブロック固定処理)
-			g.field.Tile[y][x] = g.mino.Color
+		for i, line := range g.mino.GetTypes(g.mino.GetType()) {
+			for j, block := range line {
+				if block == 0 {
+					continue
+				}
+				x := g.mino.GetX() + j
+				y := g.mino.GetY() + i
+				g.field.Tile[y][x] = block
+			}
 		}
 		g.field.DeleteLine()
-		g.mino = tetris.NewMino(5, 1, 0)
+		g.mino = tetris.MinoCreate(4, 1)
 	}
 }
 
 func (g *Game) Update() error {
 	frameCount++
-	// 48フレームで1つミノを落下させる
+	//48フレームで1つミノを落下させる
 	if frameCount == 48 {
 		g.DownMino()
+
 		frameCount = 0
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
-		if g.CanMoveMino(0, 1, g.mino.Shape) {
-			g.mino.Move(0, 1)
-		} else {
-			// 動けないので現在位置でミノを固定
-			g.DownMino()
-		}
+		g.DownMino()
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyArrowRight) {
-		if g.CanMoveMino(1, 0, g.mino.Shape) {
+		if g.CanMoveMino(1, 0) {
 			g.mino.Move(1, 0)
 		}
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyArrowLeft) {
-		if g.CanMoveMino(-1, 0, g.mino.Shape) {
+		if g.CanMoveMino(-1, 0) {
 			g.mino.Move(-1, 0)
 		}
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
 		// 回転させた時に壁にぶつからなければ
-		if g.CanMoveMino(0, 0, g.mino.Shape+1) {
-			g.mino.Shape++
-		}
+		//if g.CanMoveMino(0, 0, g.mino.Shape+1) {
+		//	g.mino.Shape++
+		//}
+		g.mino.LeftRotate(g.field)
 	}
 	return nil
 }
@@ -131,7 +104,9 @@ func main() {
 
 	game := &Game{}
 	game.field = tetris.NewField()
-	game.mino = tetris.NewMino(5, 1, 0)
+	//game.mino = tetris.NewMino(6, 1, 0)
+	//game.mino = tetris.NewIMino(4, 1, "type6")
+	game.mino = tetris.MinoCreate(4, 1)
 
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
