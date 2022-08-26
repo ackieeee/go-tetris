@@ -5,6 +5,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"go-tetris/tetris"
+	"image/color"
 	_ "image/png"
 	"log"
 )
@@ -20,17 +21,31 @@ const (
 type Game struct {
 	field *tetris.Field
 	mino  tetris.Mino
+	hold  tetris.Mino
 }
 
 func (g *Game) drawField(screen *ebiten.Image) {
+	g.drawHoldField(screen)
 	for i := 0; i < len(g.field.Tile); i++ {
 		line := g.field.Tile[i]
 		for j := 0; j < len(line); j++ {
 			block := line[j]
 			if block != 9 {
-				ebitenutil.DrawRect(screen, float64(BLOCK_SIZE*j), float64(BLOCK_SIZE*i), BLOCK_SIZE, BLOCK_SIZE, tetris.Colors[block])
+				x := j + tetris.FIELD_POS
+				y := i
+				ebitenutil.DrawRect(screen, float64(BLOCK_SIZE*x), float64(BLOCK_SIZE*y), BLOCK_SIZE, BLOCK_SIZE, tetris.Colors[block])
 			}
 		}
+	}
+}
+
+func (g *Game) drawHoldField(screen *ebiten.Image) {
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE), float64(BLOCK_SIZE), 5, BLOCK_SIZE*5, color.White)
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE), float64(BLOCK_SIZE), BLOCK_SIZE*5, 5, color.White)
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE), float64(BLOCK_SIZE*6), BLOCK_SIZE*5, 5, color.White)
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE*6), float64(BLOCK_SIZE), 5, BLOCK_SIZE*5+5, color.White)
+	if g.hold != nil {
+		g.hold.Draw(screen, BLOCK_SIZE)
 	}
 }
 
@@ -48,13 +63,13 @@ func (g *Game) DownMino() {
 				if block == 0 {
 					continue
 				}
-				x := g.mino.GetX() + j
+				x := g.mino.GetX() + j - tetris.FIELD_POS
 				y := g.mino.GetY() + i
 				g.field.Tile[y][x] = block
 			}
 		}
 		g.field.DeleteLine()
-		g.mino = tetris.MinoCreate(4, 1)
+		g.mino = tetris.MinoCreate(tetris.FIELD_POS+4, 1)
 	}
 }
 
@@ -86,6 +101,31 @@ func (g *Game) Update() error {
 		//}
 		g.mino.LeftRotate(g.field)
 	}
+	// ホールドと切り替え
+	if inpututil.IsKeyJustPressed(ebiten.KeyH) {
+		if g.hold == nil {
+			g.hold = g.mino.Copy()
+			g.hold.SetType("type1")
+			g.hold.SetX(2)
+			g.hold.SetY(2)
+			g.mino = tetris.MinoCreate(tetris.FIELD_POS+4, 1)
+		} else {
+			copyHoldMino := g.hold.Copy()
+			copyMino := g.mino.Copy()
+
+			x := copyMino.GetX()
+			y := copyMino.GetY()
+
+			g.hold = copyMino
+			g.hold.SetType("type1")
+			g.hold.SetX(2)
+			g.hold.SetY(2)
+
+			g.mino = copyHoldMino
+			g.mino.SetX(x)
+			g.mino.SetY(y)
+		}
+	}
 	return nil
 }
 
@@ -95,18 +135,18 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 640, 960
+	return 960, 1280
 }
 
 func main() {
-	ebiten.SetWindowSize(640, 960)
+	ebiten.SetWindowSize(960, 1280)
 	ebiten.SetWindowTitle("テトリス")
 
 	game := &Game{}
 	game.field = tetris.NewField()
 	//game.mino = tetris.NewMino(6, 1, 0)
 	//game.mino = tetris.NewIMino(4, 1, "type6")
-	game.mino = tetris.MinoCreate(4, 1)
+	game.mino = tetris.MinoCreate(tetris.FIELD_POS+4, 1)
 
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)

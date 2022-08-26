@@ -5,6 +5,8 @@ const (
 	FIELD_WIDTH  = 12
 )
 
+var FIELD_POS = 7
+
 type Field struct {
 	Tile [][]int
 }
@@ -39,6 +41,7 @@ func NewField() *Field {
 
 func (f *Field) CanMoveMino(m Mino, x, y int) bool {
 	featureMino := m.Copy()
+	x -= FIELD_POS
 	featureMino.AddX(x)
 	featureMino.AddY(y)
 	//featureMino.Shape = shape
