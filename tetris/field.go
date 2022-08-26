@@ -51,6 +51,12 @@ func (f *Field) CanMoveMino(m Mino, x, y int) bool {
 			}
 			x := featureMino.GetX() + j
 			y := featureMino.GetY() + i
+			if x < 0 || x > 11 {
+				return false
+			}
+			if y > 21 {
+				return false
+			}
 			if f.Tile[y][x] != 9 {
 				return false
 			}

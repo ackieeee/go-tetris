@@ -85,17 +85,34 @@ func (m *BaseMino) Move(x, y int) {
 }
 
 func CanMoveMinoByType(m Mino, field *Field, t string, nextX int, nextY int) bool {
-	for i, line := range m.GetTypes(t) {
-		for j, block := range line {
-			if block == 0 {
-				continue
-			}
-			x := j + nextX
-			y := i + nextY
-			if !field.CanMoveMino(m, x, y) {
-				return false
-			}
-		}
+	//blockPairs := [][]int{}
+	//for i, line := range m.GetTypes(t) {
+	//	for j, block := range line {
+	//		if block == 0 {
+	//			continue
+	//		}
+	//		x := j + nextX
+	//		y := i + nextY
+	//		blockPairs = append(blockPairs, []int{x, y})
+	//		//if !field.CanMoveMino(m, x, y) {
+	//		//	return false
+	//		//}
+	//	}
+	//}
+
+	//for _, bp := range blockPairs {
+	//	tmpType := m.GetType()
+	//	m.SetType(t)
+	//	if !field.CanMoveMino(m, bp[0], bp[1]) {
+	//		m.SetType(tmpType)
+	//		return false
+	//	}
+	//}
+	tmpType := m.GetType()
+	m.SetType(t)
+	if !field.CanMoveMino(m, nextX, nextY) {
+		m.SetType(tmpType)
+		return false
 	}
 	return true
 }
