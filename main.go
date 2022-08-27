@@ -80,7 +80,11 @@ func (g *Game) DownMino() {
 			}
 		}
 		g.field.DeleteLine()
-		g.mino = tetris.MinoCreate(tetris.FIELD_POS+4, 1)
+		//x, y := g.mino.GetX(), g.mino.GetY()
+		g.mino = g.next.Copy()
+		g.mino.SetX(tetris.FIELD_POS + 4)
+		g.mino.SetY(1)
+		g.next = tetris.MinoCreate(g.next.GetX(), g.next.GetY())
 	}
 }
 
@@ -119,7 +123,12 @@ func (g *Game) Update() error {
 			g.hold.SetType("type1")
 			g.hold.SetX(2)
 			g.hold.SetY(2)
-			g.mino = tetris.MinoCreate(tetris.FIELD_POS+4, 1)
+
+			x, y := g.mino.GetX(), g.mino.GetY()
+			g.mino = g.next.Copy()
+			g.mino.SetX(x)
+			g.mino.SetY(y)
+			g.next = tetris.MinoCreate(g.next.GetX(), g.next.GetY())
 		} else {
 			copyHoldMino := g.hold.Copy()
 			copyMino := g.mino.Copy()
@@ -158,7 +167,7 @@ func main() {
 	//game.mino = tetris.NewMino(6, 1, 0)
 	//game.mino = tetris.NewIMino(4, 1, "type6")
 	game.mino = tetris.MinoCreate(tetris.FIELD_POS+4, 1)
-	game.next = tetris.MinoCreate(NEXT_POS+2, 1)
+	game.next = tetris.MinoCreate(21, 2)
 
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
