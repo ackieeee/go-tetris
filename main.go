@@ -26,6 +26,7 @@ type Game struct {
 
 func (g *Game) drawField(screen *ebiten.Image) {
 	g.drawHoldField(screen)
+	//g.drawNextField(screen)
 	for i := 0; i < len(g.field.Tile); i++ {
 		line := g.field.Tile[i]
 		for j := 0; j < len(line); j++ {
@@ -47,6 +48,13 @@ func (g *Game) drawHoldField(screen *ebiten.Image) {
 	if g.hold != nil {
 		g.hold.Draw(screen, BLOCK_SIZE)
 	}
+}
+
+func (g *Game) drawNextField(screen *ebiten.Image) {
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE+300), float64(BLOCK_SIZE), 5, BLOCK_SIZE*5, color.White)
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE+300), float64(BLOCK_SIZE), BLOCK_SIZE*5, 5, color.White)
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE+300), float64(BLOCK_SIZE*6), BLOCK_SIZE*5, 5, color.White)
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE*6+300), float64(BLOCK_SIZE), 5, BLOCK_SIZE*5+5, color.White)
 }
 
 func (g *Game) CanMoveMino(x, y int) bool {
