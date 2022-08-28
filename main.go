@@ -16,17 +16,19 @@ var (
 
 const (
 	BLOCK_SIZE = 35
+	NEXT_POS   = 650
 )
 
 type Game struct {
 	field *tetris.Field
 	mino  tetris.Mino
 	hold  tetris.Mino
+	next  tetris.Mino
 }
 
 func (g *Game) drawField(screen *ebiten.Image) {
 	g.drawHoldField(screen)
-	//g.drawNextField(screen)
+	g.drawNextField(screen)
 	for i := 0; i < len(g.field.Tile); i++ {
 		line := g.field.Tile[i]
 		for j := 0; j < len(line); j++ {
@@ -51,10 +53,11 @@ func (g *Game) drawHoldField(screen *ebiten.Image) {
 }
 
 func (g *Game) drawNextField(screen *ebiten.Image) {
-	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE+300), float64(BLOCK_SIZE), 5, BLOCK_SIZE*5, color.White)
-	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE+300), float64(BLOCK_SIZE), BLOCK_SIZE*5, 5, color.White)
-	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE+300), float64(BLOCK_SIZE*6), BLOCK_SIZE*5, 5, color.White)
-	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE*6+300), float64(BLOCK_SIZE), 5, BLOCK_SIZE*5+5, color.White)
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE+NEXT_POS), float64(BLOCK_SIZE), 5, BLOCK_SIZE*5, color.White)
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE+NEXT_POS), float64(BLOCK_SIZE), BLOCK_SIZE*5, 5, color.White)
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE+NEXT_POS), float64(BLOCK_SIZE*6), BLOCK_SIZE*5, 5, color.White)
+	ebitenutil.DrawRect(screen, float64(BLOCK_SIZE*6+NEXT_POS), float64(BLOCK_SIZE), 5, BLOCK_SIZE*5+5, color.White)
+	g.next.Draw(screen, BLOCK_SIZE)
 }
 
 func (g *Game) CanMoveMino(x, y int) bool {
@@ -155,6 +158,7 @@ func main() {
 	//game.mino = tetris.NewMino(6, 1, 0)
 	//game.mino = tetris.NewIMino(4, 1, "type6")
 	game.mino = tetris.MinoCreate(tetris.FIELD_POS+4, 1)
+	game.next = tetris.MinoCreate(NEXT_POS+2, 1)
 
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
